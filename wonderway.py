@@ -23,9 +23,6 @@ def askUserInterests() -> list[int]:
         if response != '':
             answers.append(int(response))
     return answers
-    
-
-    
 
 if __name__ == '__main__':
     # print(askUserInput(ASK_LOCATION_START))
