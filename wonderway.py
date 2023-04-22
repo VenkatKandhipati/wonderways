@@ -14,6 +14,7 @@ autocomplete_url = "https://api.geoapify.com/v1/geocode/autocomplete?text="
 #locations
 locationA = ''
 locationB = ''
+chosenWonderList = []
 ASK_INTERESTS = 'What interests do you want to see? (Hit "Enter" to quit)'
 INTERESTS = ['concert', 'restaurant']
 WONDERS = OrderedDict(enumerate(INTERESTS, 1))
@@ -55,3 +56,4 @@ if __name__ == '__main__':
     locationB = autocompleteUserInput(askUserInput(ASK_LOCATION_END))
     print("Selected location A: " + locationA)
     print("Selected location B: " + locationB)
+    chosenWonderList = askUserInterests()
