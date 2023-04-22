@@ -14,7 +14,7 @@ AUTOCOMPLETE_URL = "https://api.geoapify.com/v1/geocode/autocomplete?text="
 locationA = ''
 locationB = ''
 ASK_INTERESTS = 'What interests do you want to see? (Hit "Enter" to quit)'
-INTERESTS = ['concert', 'restaurant']
+INTERESTS = ['outlets', 'museums', 'nature', 'hotels', 'restaurants']
 WONDERS = OrderedDict(enumerate(INTERESTS, 1))
 
 BASE_GOOGLEDIR_URL = "https://www.google.com/maps/dir/?api=1"
