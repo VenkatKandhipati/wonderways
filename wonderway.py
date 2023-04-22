@@ -1,7 +1,10 @@
+from collections import OrderedDict
+
 ASK_LOCATION_START = 'What is your current location: '
 ASK_LOCATION_END = 'What is your destination: '
-ASK_INTERESTS = 'What interests do you want to see?'
-WONDERS = ['concert', 'restaurant']
+ASK_INTERESTS = 'What interests do you want to see? (Hit "Enter" to quit)'
+INTERESTS = ['concert', 'restaurant']
+WONDERS = OrderedDict(enumerate(INTERESTS, 1))
 
 def askUserInput(prompt: str) -> str:
     return input(prompt)
@@ -9,12 +12,22 @@ def askUserInput(prompt: str) -> str:
 def findLocationSuggestions():
     pass
 
-def askUserInterests() -> str:
+def askUserInterests() -> list[int]:
     print(ASK_INTERESTS)
-    for idx, itm in enumerate(WONDERS, 1):
-        print(f'{idx}. {itm}')
-    return askUserInput('')
+    response = 'temp'
+    answers = []
+    while response != '':
+        for key, val in WONDERS.items():
+            print(f'{key}. {val}')
+        response = askUserInput('') 
+        if response != '':
+            answers.append(int(response))
+    return answers
+    
+
+    
 
 if __name__ == '__main__':
-    print(askUserInput(ASK_LOCATION_START))
-    print(askUserInput(ASK_LOCATION_END))
+    # print(askUserInput(ASK_LOCATION_START))
+    # print(askUserInput(ASK_LOCATION_END))
+    print(askUserInterests())
