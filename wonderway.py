@@ -8,6 +8,7 @@ SELECT_YOUR_LOCATION = 'Select an option: '
 # autocomplete_api_key = 'AIzaSyCtc3PJQHYVAZc0qvA1X_8AVisLOHBY4NU'
 autocomplete_api_key = '&apiKey=04ac17cb87a948e090b32ab737424ede'
 autocomplete_url = "https://api.geoapify.com/v1/geocode/autocomplete?text="
+GMAP_API_KEY = 'AIzaSyB20tRldzDpoz4aSAI_PG9hwStARxfveVY'
 
 #locations
 locationA = ''
