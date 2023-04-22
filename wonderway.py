@@ -143,7 +143,7 @@ def locationToURLEncodedLocation(location: str) -> str:
     '''
     return urllib.parse.quote(location)
 
-def createGoogleDirectionURL(startLocation: str, endLocation: str) -> str:
+def createGoogleDirectionURL(startLocation: str, endLocation: str, waypoints: list[str] | None = None) -> str:
     '''
     @brief Given the starting location as a string and the ending location as a string,
            the function will return google map link that routes between point A and
@@ -158,6 +158,9 @@ def createGoogleDirectionURL(startLocation: str, endLocation: str) -> str:
     endEncoded = locationToURLEncodedLocation(endLocation)
 
     final_str = f'{BASE_GOOGLEDIR_URL}&origin={startEncoded}&destination={endEncoded}&travelmode=driving'
+
+    if waypoints is not None:
+        final_str += f'&waypoints={locationToURLEncodedLocation("|".join(waypoints))}'
 
     return final_str
 
