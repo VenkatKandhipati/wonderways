@@ -20,14 +20,25 @@ def askUserInput(prompt: str) -> str:
     return input(prompt)
 
 def autocompleteUserInput(userLocation: str) -> str:
-    '''Asks user to select a location from autocompleted list'''
+    '''
+    @brief Asks user to select a location from autocompleted list.
+    
+    @param userLocation: The inputted location the user typed.
+
+    @return The chosen location in a string format.
+    '''
     autocompleteOptions = autocompleteApiPing(userLocation)
     for index, location in enumerate(autocompleteOptions):
         print(index, location)
     return autocompleteOptions[int(askUserInput(SELECT_YOUR_LOCATION))]
 
-def autocompleteApiPing(query:str ) -> list[str]:
-    '''Ping the autocomplete api with what the user has entered. Returns a list of possible options'''
+def autocompleteApiPing(query: str) -> list[str]:
+    '''
+    @brief Ping the autocomplete api with what the user has entered. Returns a list of possible options.
+    @param query: What the user inputed prior to autocompletion.
+
+    @return A list containing all the auto completed options.
+    '''
     rawResult = requests.get(autocomplete_url + query + autocomplete_api_key)
     jsonResult = rawResult.json()
     try:
@@ -38,7 +49,9 @@ def autocompleteApiPing(query:str ) -> list[str]:
 
 def askUserInterests() -> list[int]:
     '''
-    Prompts the user from a curated list to select wonders that interest them. 
+    @brief Prompts the user from a curated list to select wonders that interest them. 
+
+    @return A list containing what interests the user.
     '''
     print(ASK_INTERESTS)
     response = 'temp'
