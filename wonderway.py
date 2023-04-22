@@ -180,7 +180,7 @@ def cleanDict(inputDict: dict[str, dict[str, str]]) -> list[list[str], dict[str,
                 deleteList.append(city)
             else:
                 inputDict[city][wonder] = cleanedLocation
-                preWaypoints.append(f'{city} {cleanedLocation}')
+                preWaypoints.append(f'{city}, {cleanedLocation}')
 
     for d in deleteList:
         del inputDict[d]
@@ -197,6 +197,16 @@ def waypointPrompt(preWaypoints: list[str]) -> list[str]:
         if response != '':
             selectedWaypoints.append(preWaypoints[int(response)])
     return selectedWaypoints
+
+def autocompleteWaypoints(selectedWaypoints: list[str]) -> list[str]:
+    expandedWaypoints = []
+    for waypoint in selectedWaypoints:
+        print(waypoint)
+        try:
+            expandedWaypoints.append(autocompleteApiPing(waypoint)[0])
+        except IndexError:
+            pass
+    return expandedWaypoints
 
 if __name__ == '__main__':
     locationA = autocompleteUserInput(askUserInput(ASK_LOCATION_START))
@@ -224,9 +234,11 @@ if __name__ == '__main__':
     # print(output_dict0)
     # print(output_dict1)
     selectedWaypoints0 = waypointPrompt(waypoints0)
+    print()
     selectedWaypoints1 = waypointPrompt(waypoints1)
-    print(selectedWaypoints0)
-    print(selectedWaypoints1)
+    print(autocompleteWaypoints(selectedWaypoints0))
+    print()
+    print(autocompleteWaypoints(selectedWaypoints1))
     # for city, interests in output_dict.items():
     #     print("City:", city)
     #     for interest, location in interests.items():
