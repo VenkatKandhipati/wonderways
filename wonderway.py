@@ -1,6 +1,4 @@
 import requests
-
-#prompts
 from collections import OrderedDict
 
 ASK_LOCATION_START = 'What is your starting location: '
@@ -14,7 +12,6 @@ autocomplete_url = "https://api.geoapify.com/v1/geocode/autocomplete?text="
 #locations
 locationA = ''
 locationB = ''
-chosenWonderList = []
 ASK_INTERESTS = 'What interests do you want to see? (Hit "Enter" to quit)'
 INTERESTS = ['concert', 'restaurant']
 WONDERS = OrderedDict(enumerate(INTERESTS, 1))
@@ -40,6 +37,9 @@ def autocompleteApiPing(query:str ) -> list[str]:
     return list(simplifiedResults[i]['properties']['formatted'] for i in range(len(simplifiedResults)))
 
 def askUserInterests() -> list[int]:
+    '''
+    Prompts the user from a curated list to select wonders that interest them. 
+    '''
     print(ASK_INTERESTS)
     response = 'temp'
     answers = []
@@ -56,4 +56,3 @@ if __name__ == '__main__':
     locationB = autocompleteUserInput(askUserInput(ASK_LOCATION_END))
     print("Selected location A: " + locationA)
     print("Selected location B: " + locationB)
-    chosenWonderList = askUserInterests()
