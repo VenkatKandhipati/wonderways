@@ -1,7 +1,8 @@
-import requests
-from collections import OrderedDict
-import os
 import asyncio
+import os
+import requests
+from bs4 import BeautifulSoup
+from collections import OrderedDict
 from sydney import SydneyClient
 
 ASK_LOCATION_START = 'What is your starting location: '
@@ -74,18 +75,39 @@ async def setupSydney() -> None:
     # sydney = SydneyClient()
 
     # sydney = SydneyClient(style="creative")
-    async with SydneyClient(style="balanced") as sydney:
+    async with SydneyClient(style="creative") as sydney:
         # response = await sydney.ask(f"format a list of 10 restaurants that are located in between {locationA} and {locationB} and sort by yelp rating")
         # response = await sydney.ask(f"generate a list of 10 restaurants between {locationA} and {locationB} in the format: 'restaurant - zipcode'. ")
-        response = await sydney.ask(f"generate a list of 10 restaurants between {locationA} and {locationB}. An example output should look like: 'Discovery Cube - 92660'.")
+        response = await sydney.ask(f"Generate a list of restaurants between {locationA} and {locationB} in the format: Name, Location")
 
-        print(response, end="", flush=True)
+        print(response)
 
     return
+
+def getCities(cityA: str, stateA: str, cityB: str, stateB: str) -> list[str]:
+    r = requests.post(f'https://citiesbetween.com/{cityA}-{stateA}-and-{cityB}-{stateB}')
+    b = BeautifulSoup(r.text, 'lxml')
+
+    cities = []
+    for div in b.find_all('div', class_='cityinfo'):
+        a_tag = div.find('a')
+        cities.append(a_tag.text.strip())
+    
+    return cities
+
+
 if __name__ == '__main__':
     locationA = autocompleteUserInput(askUserInput(ASK_LOCATION_START))
     locationB = autocompleteUserInput(askUserInput(ASK_LOCATION_END))
-    asyncio.run(setupSydney())
+
+    locALst = locationA.split(',')
+    locBLst = locationB.split(',')
+    cityA, stateA = locALst[-3].strip().replace(' ', '-'), locALst[-2].split()[0].strip()
+    cityB, stateB = locBLst[-3].strip().replace(' ', '-'), locBLst[-2].split()[0].strip()
+
+    print(getCities(cityA, stateA, cityB, stateB))
+    
+    # asyncio.run(setupSydney())
 
     
     
