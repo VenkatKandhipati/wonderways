@@ -37,8 +37,6 @@ def autocompleteApiPing(query:str ) -> list[str]:
     except KeyError:
         pass
     return list(simplifiedResults[i]['properties']['formatted'] for i in range(len(simplifiedResults)))
-    def findLocationSuggestions():
-    pass
 
 def askUserInterests() -> list[int]:
     print(ASK_INTERESTS)
