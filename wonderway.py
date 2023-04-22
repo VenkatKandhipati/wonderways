@@ -10,6 +10,7 @@ from sydney import SydneyClient
 ASK_LOCATION_START = 'What is your starting location: '
 ASK_LOCATION_END = 'What is your destination: '
 SELECT_YOUR_LOCATION = 'Select an option: '
+ASK_WAYPOINT = 'Which wonder would you like to experience? (Hit "Enter" to quit)'
 
 # autocomplete_api_key = 'AIzaSyCtc3PJQHYVAZc0qvA1X_8AVisLOHBY4NU'
 AUTOCOMPLETE_API_KEY = '&apiKey=04ac17cb87a948e090b32ab737424ede'
@@ -97,7 +98,7 @@ async def setupSydney(wonder: list[str], cities: list[str]) -> list[str, str]:
         return [response1, response2]
     
 def parseBingOutput(response: str, userInterest) -> dict[str, str]:
-    
+    '''Read the output by bingchat and construct a dictionary which maps the city to the wonder'''
     # # pattern = r"- (\w+):\n\s+- {}?: (.*?)\n\s+- {}?: (.*?)\n".format(user_interest[0], user_interest[1])
     # pattern = r"- (\w+): ([^\n]+)"
     # # matches = re.findall(pattern, response, re.DOTALL)
@@ -122,6 +123,8 @@ def parseBingOutput(response: str, userInterest) -> dict[str, str]:
     return city_wonder_data
 
 def getCities(cityA: str, stateA: str, cityB: str, stateB: str) -> list[str]:
+    ''' web scrapes the citiesbetween website in order to generate a list of major cities between
+    point a and point b the user is traveling between'''
     r = requests.post(f'https://citiesbetween.com/{cityA}-{stateA}-and-{cityB}-{stateB}')
     b = BeautifulSoup(r.text, 'lxml')
 
@@ -162,6 +165,9 @@ def createGoogleDirectionURL(startLocation: str, endLocation: str) -> str:
     return final_str
 
 def cleanDict(inputDict: dict[str, dict[str, str]]) -> list[list[str], dict[str, dict[str, str]]]:
+    '''gets the dictionary returned by parsing the bingchat output and cleans it to remove any null
+        locations. Also constructs a waypoints list which can be shown to the user
+    '''
     preWaypoints = []
     deleteList = []
     for city, innerDict in inputDict.items():
@@ -178,6 +184,16 @@ def cleanDict(inputDict: dict[str, dict[str, str]]) -> list[list[str], dict[str,
 
     return [preWaypoints,inputDict]
 
+def waypointPrompt(preWaypoints: list[str]) -> list[str]:
+    selectedWaypoints = []
+    response = 'temp'
+    while response != '':
+        for i, waypoint in enumerate(preWaypoints):
+            print(i, waypoint)
+        response = askUserInput(ASK_WAYPOINT)
+        if response != '':
+            selectedWaypoints.append(preWaypoints[int(response)])
+    return selectedWaypoints
 
 if __name__ == '__main__':
     locationA = autocompleteUserInput(askUserInput(ASK_LOCATION_START))
@@ -200,10 +216,14 @@ if __name__ == '__main__':
     waypoints0, output_dict0 = cleanDict(parseBingOutput(bingResponses[0], user_interest[0]))
     waypoints1, output_dict1 = cleanDict(parseBingOutput(bingResponses[1], user_interest[1]))
 
-    print(waypoints0)
-    print(waypoints1)
-    print(output_dict0)
-    print(output_dict1)
+    # print(waypoints0)
+    # print(waypoints1)
+    # print(output_dict0)
+    # print(output_dict1)
+    selectedWaypoints0 = waypointPrompt(waypoints0)
+    selectedWaypoints1 = waypointPrompt(waypoints1)
+    print(selectedWaypoints0)
+    print(selectedWaypoints1)
     # for city, interests in output_dict.items():
     #     print("City:", city)
     #     for interest, location in interests.items():
