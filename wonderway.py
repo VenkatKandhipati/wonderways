@@ -1,7 +1,8 @@
 import asyncio
 import os
-import urllib.parse
+import re
 import requests
+import urllib.parse
 from bs4 import BeautifulSoup
 from collections import OrderedDict
 from sydney import SydneyClient
@@ -19,7 +20,7 @@ os.environ["BING_U_COOKIE"] = "1ItVFIzKeJ4ET1TMuQo7Tkbj9NEwiA6HF8TbvJgKvbA1M8hh5
 locationA = ''
 locationB = ''
 ASK_INTERESTS = 'What interests do you want to see? (Hit "Enter" to quit)'
-INTERESTS = ['outlets', 'museums', 'nature', 'hotels', 'restaurants']
+INTERESTS = ['outlets', 'museums', 'trails', 'hotels', 'restaurants']
 WONDERS = OrderedDict(enumerate(INTERESTS, 1))
 
 BASE_GOOGLEDIR_URL = "https://www.google.com/maps/dir/?api=1"
@@ -71,21 +72,23 @@ def askUserInterests() -> list[int]:
         response = askUserInput('') 
         if response != '':
             answers.append(int(response))
-    return answers
+    return [WONDERS[num] for num in answers]
 
-async def setupSydney() -> None:
+async def setupSydney(wonder: list[str], cities: list[str]) -> str:
     '''Create and initialize Sydney Client for Bing Chat'''
-    # sydney = SydneyClient()
-
-    # sydney = SydneyClient(style="creative")
     async with SydneyClient(style="creative") as sydney:
         # response = await sydney.ask(f"format a list of 10 restaurants that are located in between {locationA} and {locationB} and sort by yelp rating")
         # response = await sydney.ask(f"generate a list of 10 restaurants between {locationA} and {locationB} in the format: 'restaurant - zipcode'. ")
-        response = await sydney.ask(f"Generate a list of restaurants between {locationA} and {locationB} in the format: Name, Location")
+        response = await sydney.ask(f"Create a list the following cities ({', '.join(cities)}), for every interest ({', '.join(wonder)}), find me 1 highly recommended interest in the city with format: 'Name: Location'")
+        # if city != 'restaurants':
+        #     response = await sydney.ask(f"Find me 1 highly recommended {wonder} in the city {city} with format: 'Name: Location'")
+        # else:
+        #     response = await sydney.ask(f"Find me 3 highly recommended {wonder} in the city {city} with format: 'Name: Location'")
 
-        print(response)
+        
+            
 
-    return
+        return response
 
 def getCities(cityA: str, stateA: str, cityB: str, stateB: str) -> list[str]:
     r = requests.post(f'https://citiesbetween.com/{cityA}-{stateA}-and-{cityB}-{stateB}')
@@ -128,15 +131,20 @@ def createGoogleDirectionURL(startLocation: str, endLocation: str) -> str:
     return final_str
 
 if __name__ == '__main__':
-    locationA = autocompleteUserInput(askUserInput(ASK_LOCATION_START))
-    locationB = autocompleteUserInput(askUserInput(ASK_LOCATION_END))
+    # locationA = autocompleteUserInput(askUserInput(ASK_LOCATION_START))
+    # locationB = autocompleteUserInput(askUserInput(ASK_LOCATION_END))
+
+    locationA = 'UCI - North Campus, Irvine, CA, United States of America'
+    locationB = 'Ronald Reagan UCLA Medical Center, 757 Westwood Plaza, Los Angeles, CA 90095, United States of America'
+
+    user_interest = askUserInterests()
 
     locALst = locationA.split(',')
     locBLst = locationB.split(',')
     cityA, stateA = locALst[-3].strip().replace(' ', '-'), locALst[-2].split()[0].strip()
     cityB, stateB = locBLst[-3].strip().replace(' ', '-'), locBLst[-2].split()[0].strip()
 
-    print(getCities(cityA, stateA, cityB, stateB))
+    all_cities = getCities(cityA, stateA, cityB, stateB)
     
     # asyncio.run(setupSydney())
 
