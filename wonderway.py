@@ -20,7 +20,7 @@ os.environ["BING_U_COOKIE"] = "1ItVFIzKeJ4ET1TMuQo7Tkbj9NEwiA6HF8TbvJgKvbA1M8hh5
 locationA = ''
 locationB = ''
 ASK_INTERESTS = 'What interests do you want to see? (Hit "Enter" to quit)'
-INTERESTS = ['outlets', 'museums', 'trails', 'hotels', 'restaurants']
+INTERESTS = ['Outlets', 'Museums', 'Trails', 'Hotels', 'Restaurants']
 WONDERS = OrderedDict(enumerate(INTERESTS, 1))
 
 BASE_GOOGLEDIR_URL = "https://www.google.com/maps/dir/?api=1"
@@ -74,21 +74,52 @@ def askUserInterests() -> list[int]:
             answers.append(int(response))
     return [WONDERS[num] for num in answers]
 
-async def setupSydney(wonder: list[str], cities: list[str]) -> str:
+async def setupSydney(wonder: list[str], cities: list[str]) -> list[str, str]:
     '''Create and initialize Sydney Client for Bing Chat'''
     async with SydneyClient(style="creative") as sydney:
         # response = await sydney.ask(f"format a list of 10 restaurants that are located in between {locationA} and {locationB} and sort by yelp rating")
         # response = await sydney.ask(f"generate a list of 10 restaurants between {locationA} and {locationB} in the format: 'restaurant - zipcode'. ")
-        response = await sydney.ask(f"Create a list the following cities ({', '.join(cities)}), for every interest ({', '.join(wonder)}), find me 1 highly recommended interest in the city with format: 'Name: Location'")
+
+        # response = await sydney.ask(f"Create a list the following cities ({', '.join(cities)}), for every interest ({', '.join(wonder)}), find me 1 highly recommended interest in the city with format: 'Name: Location'")
+        # response1 = await sydney.ask(f"Create a list of the following cities ({', '.join(cities)}), and find me 1 highly recommended ({wonder[0]}) in the city with format: 'Name: Location'")
+        # response2 = await sydney.ask(f"Create a list of the following cities ({', '.join(cities)}), and find me 1 highly recommended ({wonder[1]}) in the city with format: 'Name: Location'")
+        
+        response1 = await sydney.ask(f"create a list of the following cities ({', '.join(cities)}), and find me 1 highly recommended {wonder[0]} in each city. Don't include the citations. Use the following as an example output you should follow: - Dyer: John Dillinger Museum - Costa Mesa: Lyon Air Museum - Fountain Valley: Heritage Museum of Orange County - Westminster: Vietnam War Memorial - Los Alamitos: Los Alamitos Museum - Hawaiian Gardens: Hawaiian Gardens Historical Society - Cerritos: Cerritos Library - Norwalk: Hargitt House Museum - Downey: Columbia Memorial Space Center - East Los Angeles: Vincent Price Art Museum - Redondo Junction: California Science Center")
+        response2 = await sydney.ask(f"create a list of the following cities ({', '.join(cities)}), and find me 1 highly recommended {wonder[1]} in each city. Don't include the citations. Use the following as an example output you should follow: - Dyer: John Dillinger Museum - Costa Mesa: Lyon Air Museum - Fountain Valley: Heritage Museum of Orange County - Westminster: Vietnam War Memorial - Los Alamitos: Los Alamitos Museum - Hawaiian Gardens: Hawaiian Gardens Historical Society - Cerritos: Cerritos Library - Norwalk: Hargitt House Museum - Downey: Columbia Memorial Space Center - East Los Angeles: Vincent Price Art Museum - Redondo Junction: California Science Center")
+        # response1 = await sydney.ask(f"create a list of the following cities ({', '.join(cities)}), and find me 1 highly recommended {wonder[0]} or {wonder[1]} in each city. If there are no recommendations, do NOT include it in the list. Don't include the citations. Use the following as an example output you should follow: - Dyer: street address - Costa Mesa: street address - Fountain Valley: street address - Westminster: street address - Los Alamitos: street address - Hawaiian Gardens: street address - Cerritos: street address - Norwalk: street address - Downey: street address - East Los Angeles: street address - Redondo Junction: street address")
+
         # if city != 'restaurants':
         #     response = await sydney.ask(f"Find me 1 highly recommended {wonder} in the city {city} with format: 'Name: Location'")
         # else:
         #     response = await sydney.ask(f"Find me 3 highly recommended {wonder} in the city {city} with format: 'Name: Location'")
+        print(response1)
+        print(response2)
+        return [response1, response2]
+    
+def parseBingOutput(response: str, userInterest) -> dict[str, str]:
+    
+    # # pattern = r"- (\w+):\n\s+- {}?: (.*?)\n\s+- {}?: (.*?)\n".format(user_interest[0], user_interest[1])
+    # pattern = r"- (\w+): ([^\n]+)"
+    # # matches = re.findall(pattern, response, re.DOTALL)
+    # matches = re.findall(pattern, response)
 
-        
-            
+    pattern = r"- (\w+): ([^\n]+)"
+    matches = re.findall(pattern, response)
 
-        return response
+
+    # city_data = {}
+    # for match in matches:
+    #     city = match[0]
+    #     interest0 = re.sub(r'[\[\]]|\*{2}', '', match[1])
+    #     interest1 = re.sub(r'[\[\]]|\*{2}', '', match[2])
+    #     city_data[city] = {user_interest[0]: interest0, user_interest[1]: interest1}
+    # return city_data
+    city_wonder_data = {}
+    for match in matches:
+        city = match[0]
+        wonder = re.sub(r'\*\*|\[.*?\]', '', match[1])
+        city_wonder_data[city] = {userInterest: wonder}
+    return city_wonder_data
 
 def getCities(cityA: str, stateA: str, cityB: str, stateB: str) -> list[str]:
     r = requests.post(f'https://citiesbetween.com/{cityA}-{stateA}-and-{cityB}-{stateB}')
@@ -130,12 +161,30 @@ def createGoogleDirectionURL(startLocation: str, endLocation: str) -> str:
 
     return final_str
 
-if __name__ == '__main__':
-    # locationA = autocompleteUserInput(askUserInput(ASK_LOCATION_START))
-    # locationB = autocompleteUserInput(askUserInput(ASK_LOCATION_END))
+def cleanDict(inputDict: dict[str, dict[str, str]]) -> list[list[str], dict[str, dict[str, str]]]:
+    preWaypoints = []
+    deleteList = []
+    for city, innerDict in inputDict.items():
+        for wonder, location in innerDict.items():
+            cleanedLocation = location.split(',')[0]
+            if cleanedLocation.startswith('No'):
+                deleteList.append(city)
+            else:
+                inputDict[city][wonder] = cleanedLocation
+                preWaypoints.append(f'{city} {cleanedLocation}')
 
-    locationA = 'UCI - North Campus, Irvine, CA, United States of America'
-    locationB = 'Ronald Reagan UCLA Medical Center, 757 Westwood Plaza, Los Angeles, CA 90095, United States of America'
+    for d in deleteList:
+        del inputDict[d]
+
+    return [preWaypoints,inputDict]
+
+
+if __name__ == '__main__':
+    locationA = autocompleteUserInput(askUserInput(ASK_LOCATION_START))
+    locationB = autocompleteUserInput(askUserInput(ASK_LOCATION_END))
+
+    # locationA = 'UCI - North Campus, Irvine, CA, United States of America'
+    # locationB = 'Ronald Reagan UCLA Medical Center, 757 Westwood Plaza, Los Angeles, CA 90095, United States of America'
 
     user_interest = askUserInterests()
 
@@ -145,8 +194,21 @@ if __name__ == '__main__':
     cityB, stateB = locBLst[-3].strip().replace(' ', '-'), locBLst[-2].split()[0].strip()
 
     all_cities = getCities(cityA, stateA, cityB, stateB)
-    
-    # asyncio.run(setupSydney())
+
+    bingResponses = asyncio.run(setupSydney(user_interest, all_cities))
+
+    waypoints0, output_dict0 = cleanDict(parseBingOutput(bingResponses[0], user_interest[0]))
+    waypoints1, output_dict1 = cleanDict(parseBingOutput(bingResponses[1], user_interest[1]))
+
+    print(waypoints0)
+    print(waypoints1)
+    print(output_dict0)
+    print(output_dict1)
+    # for city, interests in output_dict.items():
+    #     print("City:", city)
+    #     for interest, location in interests.items():
+    #         print("- {}: {}".format(interest, location))
+    #     print()
 
     
     
