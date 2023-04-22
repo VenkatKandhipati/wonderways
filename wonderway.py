@@ -85,8 +85,8 @@ async def setupSydney(wonder: list[str], cities: list[str]) -> list[str, str]:
         # response1 = await sydney.ask(f"Create a list of the following cities ({', '.join(cities)}), and find me 1 highly recommended ({wonder[0]}) in the city with format: 'Name: Location'")
         # response2 = await sydney.ask(f"Create a list of the following cities ({', '.join(cities)}), and find me 1 highly recommended ({wonder[1]}) in the city with format: 'Name: Location'")
         
-        response1 = await sydney.ask(f"create a list of the following cities ({', '.join(cities)}), and find me 1 highly recommended {wonder[0]} in each city. Don't include the citations. Use the following as an example output you should follow: - Dyer: John Dillinger Museum - Costa Mesa: Lyon Air Museum - Fountain Valley: Heritage Museum of Orange County - Westminster: Vietnam War Memorial - Los Alamitos: Los Alamitos Museum - Hawaiian Gardens: Hawaiian Gardens Historical Society - Cerritos: Cerritos Library - Norwalk: Hargitt House Museum - Downey: Columbia Memorial Space Center - East Los Angeles: Vincent Price Art Museum - Redondo Junction: California Science Center")
-        response2 = await sydney.ask(f"create a list of the following cities ({', '.join(cities)}), and find me 1 highly recommended {wonder[1]} in each city. Don't include the citations. Use the following as an example output you should follow: - Dyer: John Dillinger Museum - Costa Mesa: Lyon Air Museum - Fountain Valley: Heritage Museum of Orange County - Westminster: Vietnam War Memorial - Los Alamitos: Los Alamitos Museum - Hawaiian Gardens: Hawaiian Gardens Historical Society - Cerritos: Cerritos Library - Norwalk: Hargitt House Museum - Downey: Columbia Memorial Space Center - East Los Angeles: Vincent Price Art Museum - Redondo Junction: California Science Center")
+        response1 = await sydney.ask(f"create a list of the following cities ({', '.join(cities)}), and find me 1 highly recommended {wonder[0]} in each city. Don't include the citations. DON'T INCLUDE EXTRA INFORMATION. Use the following as an example output you should follow: - Dyer: John Dillinger Museum - Costa Mesa: Lyon Air Museum - Fountain Valley: Heritage Museum of Orange County - Westminster: Vietnam War Memorial - Los Alamitos: Los Alamitos Museum - Hawaiian Gardens: Hawaiian Gardens Historical Society - Cerritos: Cerritos Library - Norwalk: Hargitt House Museum - Downey: Columbia Memorial Space Center - East Los Angeles: Vincent Price Art Museum - Redondo Junction: California Science Center")
+        response2 = await sydney.ask(f"create a list of the following cities ({', '.join(cities)}), and find me 1 highly recommended {wonder[1]} in each city. Don't include the citations. DON'T INCLUDE EXTRA INFORMATION. Use the following as an example output you should follow: - Dyer: John Dillinger Museum - Costa Mesa: Lyon Air Museum - Fountain Valley: Heritage Museum of Orange County - Westminster: Vietnam War Memorial - Los Alamitos: Los Alamitos Museum - Hawaiian Gardens: Hawaiian Gardens Historical Society - Cerritos: Cerritos Library - Norwalk: Hargitt House Museum - Downey: Columbia Memorial Space Center - East Los Angeles: Vincent Price Art Museum - Redondo Junction: California Science Center")
         # response1 = await sydney.ask(f"create a list of the following cities ({', '.join(cities)}), and find me 1 highly recommended {wonder[0]} or {wonder[1]} in each city. If there are no recommendations, do NOT include it in the list. Don't include the citations. Use the following as an example output you should follow: - Dyer: street address - Costa Mesa: street address - Fountain Valley: street address - Westminster: street address - Los Alamitos: street address - Hawaiian Gardens: street address - Cerritos: street address - Norwalk: street address - Downey: street address - East Los Angeles: street address - Redondo Junction: street address")
 
         # if city != 'restaurants':
@@ -180,7 +180,7 @@ def cleanDict(inputDict: dict[str, dict[str, str]]) -> list[list[str], dict[str,
                 deleteList.append(city)
             else:
                 inputDict[city][wonder] = cleanedLocation
-                preWaypoints.append(f'{city} {cleanedLocation}')
+                preWaypoints.append(f'{city}, {cleanedLocation}')
 
     for d in deleteList:
         del inputDict[d]
@@ -197,6 +197,16 @@ def waypointPrompt(preWaypoints: list[str]) -> list[str]:
         if response != '':
             selectedWaypoints.append(preWaypoints[int(response)])
     return selectedWaypoints
+
+def autocompleteWaypoints(selectedWaypoints: list[str]) -> list[str]:
+    expandedWaypoints = []
+    for waypoint in selectedWaypoints:
+        print(waypoint)
+        try:
+            expandedWaypoints.append(autocompleteApiPing(waypoint)[0])
+        except IndexError:
+            pass
+    return expandedWaypoints
 
 if __name__ == '__main__':
     locationA = autocompleteUserInput(askUserInput(ASK_LOCATION_START))
@@ -224,9 +234,11 @@ if __name__ == '__main__':
     # print(output_dict0)
     # print(output_dict1)
     selectedWaypoints0 = waypointPrompt(waypoints0)
+    print()
     selectedWaypoints1 = waypointPrompt(waypoints1)
-    print(selectedWaypoints0)
-    print(selectedWaypoints1)
+    print(autocompleteWaypoints(selectedWaypoints0))
+    print()
+    print(autocompleteWaypoints(selectedWaypoints1))
     # for city, interests in output_dict.items():
     #     print("City:", city)
     #     for interest, location in interests.items():
