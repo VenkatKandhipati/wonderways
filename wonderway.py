@@ -1,13 +1,13 @@
 import asyncio
-from itertools import chain, zip_longest
 import os
+import streamlit as st
 import re
 import requests
 import urllib.parse
 from bs4 import BeautifulSoup
 from collections import OrderedDict
+from itertools import chain, zip_longest
 from sydney import SydneyClient
-import streamlit as st
 
 ASK_LOCATION_START = 'What is your starting location: '
 ASK_LOCATION_END = 'What is your destination: '
@@ -17,7 +17,8 @@ ASK_WAYPOINT = 'Which wonder would you like to experience? (Hit "Enter" to quit)
 # autocomplete_api_key = 'AIzaSyCtc3PJQHYVAZc0qvA1X_8AVisLOHBY4NU'
 AUTOCOMPLETE_API_KEY = '&apiKey=04ac17cb87a948e090b32ab737424ede'
 AUTOCOMPLETE_URL = "https://api.geoapify.com/v1/geocode/autocomplete?text="
-os.environ["BING_U_COOKIE"] = "1ItVFIzKeJ4ET1TMuQo7Tkbj9NEwiA6HF8TbvJgKvbA1M8hh5C1sKlJ5HN1q9XP0amEvc6xYdn4VRL16NqJFDXVtLta6flRLc_n3gCRwfEtb-xn_pUSMDcSILsYdNH-U__e1H6TJns2Ew-W_57OIa1I_XjXoCCY0Qq2pnU2v0G1c8KwN23fWmm-QBewz5SBGzmc3z_DT4JY3fBn_nWsJ2rPpVdz-1D0jSUB2WOYN9R0U"
+# os.environ["BING_U_COOKIE"] = "1ItVFIzKeJ4ET1TMuQo7Tkbj9NEwiA6HF8TbvJgKvbA1M8hh5C1sKlJ5HN1q9XP0amEvc6xYdn4VRL16NqJFDXVtLta6flRLc_n3gCRwfEtb-xn_pUSMDcSILsYdNH-U__e1H6TJns2Ew-W_57OIa1I_XjXoCCY0Qq2pnU2v0G1c8KwN23fWmm-QBewz5SBGzmc3z_DT4JY3fBn_nWsJ2rPpVdz-1D0jSUB2WOYN9R0U"
+os.environ["BING_U_COOKIE"] = "1Jq9zTJnPFgN5lcWFkIVCBlOKHYplEFnIVoCjWv27caSuKiCbTiui-baJHb-WcTayk2IluP_EL8AAkVxasxM19SCSbNbF4hsUlXlqF5sNqQLGOHDf906wcFEBDpxMGh4G1BUtp09einuUx0vNw15YCBZZf1L72Nk0XxwrYUjaJiwy5I8cjCP6qR0KWWX1PKsvRcnVp2tGXd_CDJrBb5y07Q"
 
 #locations
 locationA = ''
@@ -247,49 +248,27 @@ def run():
     print(createGoogleDirectionURL(locationA, locationB, waypoints=acwp0))
 
 def twolists(l1, l2):
-    return [ waypoint for waypoint in chain.from_iterable(zip_longest(l1, l2)) if waypoint is not None]
-
-# def test():
-#     global bingResponses
-#     if (len(bingResponses) == 0):
-#         bingResponses = asyncio.run(setupSydney(user_interest, all_cities))
-#     if (len(bingResponses) > 0):
-#         waypoints0, output_dict0 = cleanDict(parseBingOutput(bingResponses[0], user_interest[0]))
-#         waypoints1, output_dict1 = cleanDict(parseBingOutput(bingResponses[1], user_interest[1]))
-
-#         waypoints0.extend(waypoints1)
-#         # my_bar = st.progress(100)
-#         if (len(bingResponses) > 0):
-
-#             selectedWaypoints = st.multiselect("Select your Wonders!", options=waypoints0,max_selections=9)
-
-#             acwp = autocompleteWaypoints(selectedWaypoints)
-
-#             if (len(acwp) > 0):
-#                 st.write(createGoogleDirectionURL(locationA, locationB, waypoints=acwp))
+    return [waypoint for waypoint in chain.from_iterable(zip_longest(l1, l2)) if waypoint is not None]
 
 def reset():
     if 'bingResponse' in st.session_state:
         del st.session_state['bingResponse']
 
 if __name__ == '__main__':
-    
-    st.title('WonderWays')
-    st.write('Create your own :star: Wonder Way :star:')
-    print('PASSED THIS')
+    st.image('WonderWays-logos1\WonderWays-logos.jpeg', width=425)
+    # st.title('WonderWays')
+    st.subheader('Create your own :star: WonderWay :star:')
     userLocationA = st.text_input(ASK_LOCATION_START, value='UCI', on_change=reset)
-    userLocationA = st.selectbox("select autocomplete option", options=autocompleteUserInput(userLocationA), on_change=reset)
+    userLocationA = st.selectbox("Select a Location", options=autocompleteUserInput(userLocationA), on_change=reset)
 
-    userLocationB = st.text_input(ASK_LOCATION_START, value='UC Berkeley', on_change=reset)
-    userLocationB = st.selectbox("select autocomplete option", options=autocompleteUserInput(userLocationB), on_change=reset)
+    userLocationB = st.text_input(ASK_LOCATION_END, value='UC Berkeley', on_change=reset)
+    userLocationB = st.selectbox("Select a Location", options=autocompleteUserInput(userLocationB), on_change=reset)
     
     user_interest = st.multiselect("Select your 2 Interests:", options=INTERESTS, max_selections=2, on_change=reset)
-    
-    # print(userLocationA)
 
     locALst = userLocationA.split(',')
     locBLst = userLocationB.split(',')
-    # st.write(locALst)
+
     cityA, stateA = locALst[-3].strip().replace(' ', '-'), locALst[-2].split()[0].strip()
     cityB, stateB = locBLst[-3].strip().replace(' ', '-'), locBLst[-2].split()[0].strip()
 
@@ -310,26 +289,4 @@ if __name__ == '__main__':
 
                 if (len(acwp) > 0):
                     link = createGoogleDirectionURL(userLocationA, userLocationB, waypoints=acwp)
-                    st.write(link)
-                    # st.write("Check out WonderWay Trip on Google [link](https://share.streamlit.io/mesmith027/streamlit_webapps/main/MC_pi/streamlit_app.py)")
-    # waypoints0 = []
-    # # stop = True
-    # if(len(user_interest) == 2):
-    #     my_bar = st.progress(0, text=progress_text)
-    #     test()
-        # if (len(bingResponses) == 0):
-        #     bingResponses = asyncio.run(setupSydney(user_interest, all_cities))
-        # if (len(bingResponses) > 0):
-        #     waypoints0, output_dict0 = cleanDict(parseBingOutput(bingResponses[0], user_interest[0]))
-        #     waypoints1, output_dict1 = cleanDict(parseBingOutput(bingResponses[1], user_interest[1]))
-
-        #     waypoints0.extend(waypoints1)
-        #     # my_bar = st.progress(100)
-        #     if (len(waypoints0) > 0):
-
-        #         selectedWaypoints = st.multiselect("Select your Wonders!", options=waypoints0,max_selections=9)
-
-        #         acwp = autocompleteWaypoints(selectedWaypoints)
-
-        #         if (len(acwp) > 0):
-        #             st.write(createGoogleDirectionURL(locationA, locationB, waypoints=acwp))
+                    st.header(f"[Check out WonderWay Trip on Google Maps]({link})")
