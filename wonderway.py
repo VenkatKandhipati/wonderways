@@ -1,4 +1,5 @@
 import asyncio
+from itertools import chain, zip_longest
 import os
 import re
 import requests
@@ -6,6 +7,7 @@ import urllib.parse
 from bs4 import BeautifulSoup
 from collections import OrderedDict
 from sydney import SydneyClient
+import streamlit as st
 
 ASK_LOCATION_START = 'What is your starting location: '
 ASK_LOCATION_END = 'What is your destination: '
@@ -26,10 +28,12 @@ WONDERS = OrderedDict(enumerate(INTERESTS, 1))
 
 BASE_GOOGLEDIR_URL = "https://www.google.com/maps/dir/?api=1"
 
+bingResponses = []
+
 def askUserInput(prompt: str) -> str:
     return input(prompt)
 
-def autocompleteUserInput(userLocation: str) -> str:
+def autocompleteUserInput(userLocation: str) -> list[str]:
     '''
     @brief Asks user to select a location from autocompleted list.
     
@@ -39,9 +43,10 @@ def autocompleteUserInput(userLocation: str) -> str:
     '''
     autocompleteOptions = autocompleteApiPing(userLocation)
     # TODO what if the autocomplete options are empty??
-    for index, location in enumerate(autocompleteOptions):
-        print(index, location)
-    return autocompleteOptions[int(askUserInput(SELECT_YOUR_LOCATION))]
+    # for index, location in enumerate(autocompleteOptions):
+    #     print(index, location)
+    # return autocompleteOptions[int(askUserInput(SELECT_YOUR_LOCATION))]
+    return autocompleteOptions
 
 def autocompleteApiPing(query: str) -> list[str]:
     '''
@@ -75,8 +80,9 @@ def askUserInterests() -> list[int]:
             answers.append(int(response))
     return [WONDERS[num] for num in answers]
 
+# @st.cache_resource
 async def setupSydney(wonder: list[str], cities: list[str]) -> list[str, str]:
-    '''Create and initialize Sydney Client for Bing Chat'''
+    # '''Create and initialize Sydney Client for Bing Chat'''
     async with SydneyClient(style="creative") as sydney:
         # response = await sydney.ask(f"format a list of 10 restaurants that are located in between {locationA} and {locationB} and sort by yelp rating")
         # response = await sydney.ask(f"generate a list of 10 restaurants between {locationA} and {locationB} in the format: 'restaurant - zipcode'. ")
@@ -84,9 +90,11 @@ async def setupSydney(wonder: list[str], cities: list[str]) -> list[str, str]:
         # response = await sydney.ask(f"Create a list the following cities ({', '.join(cities)}), for every interest ({', '.join(wonder)}), find me 1 highly recommended interest in the city with format: 'Name: Location'")
         # response1 = await sydney.ask(f"Create a list of the following cities ({', '.join(cities)}), and find me 1 highly recommended ({wonder[0]}) in the city with format: 'Name: Location'")
         # response2 = await sydney.ask(f"Create a list of the following cities ({', '.join(cities)}), and find me 1 highly recommended ({wonder[1]}) in the city with format: 'Name: Location'")
-        
+        my_bar.progress(10)
         response1 = await sydney.ask(f"create a list of the following cities ({', '.join(cities)}), and find me 1 highly recommended {wonder[0]} in each city. Don't include the citations. DON'T INCLUDE EXTRA INFORMATION. Use the following as an example output you should follow: - Dyer: John Dillinger Museum - Costa Mesa: Lyon Air Museum - Fountain Valley: Heritage Museum of Orange County - Westminster: Vietnam War Memorial - Los Alamitos: Los Alamitos Museum - Hawaiian Gardens: Hawaiian Gardens Historical Society - Cerritos: Cerritos Library - Norwalk: Hargitt House Museum - Downey: Columbia Memorial Space Center - East Los Angeles: Vincent Price Art Museum - Redondo Junction: California Science Center")
+        my_bar.progress(40)
         response2 = await sydney.ask(f"create a list of the following cities ({', '.join(cities)}), and find me 1 highly recommended {wonder[1]} in each city. Don't include the citations. DON'T INCLUDE EXTRA INFORMATION. Use the following as an example output you should follow: - Dyer: John Dillinger Museum - Costa Mesa: Lyon Air Museum - Fountain Valley: Heritage Museum of Orange County - Westminster: Vietnam War Memorial - Los Alamitos: Los Alamitos Museum - Hawaiian Gardens: Hawaiian Gardens Historical Society - Cerritos: Cerritos Library - Norwalk: Hargitt House Museum - Downey: Columbia Memorial Space Center - East Los Angeles: Vincent Price Art Museum - Redondo Junction: California Science Center")
+        my_bar.progress(100)
         # response1 = await sydney.ask(f"create a list of the following cities ({', '.join(cities)}), and find me 1 highly recommended {wonder[0]} or {wonder[1]} in each city. If there are no recommendations, do NOT include it in the list. Don't include the citations. Use the following as an example output you should follow: - Dyer: street address - Costa Mesa: street address - Fountain Valley: street address - Westminster: street address - Los Alamitos: street address - Hawaiian Gardens: street address - Cerritos: street address - Norwalk: street address - Downey: street address - East Los Angeles: street address - Redondo Junction: street address")
 
         # if city != 'restaurants':
@@ -208,7 +216,7 @@ def autocompleteWaypoints(selectedWaypoints: list[str]) -> list[str]:
             pass
     return expandedWaypoints
 
-if __name__ == '__main__':
+def run():
     locationA = autocompleteUserInput(askUserInput(ASK_LOCATION_START))
     locationB = autocompleteUserInput(askUserInput(ASK_LOCATION_END))
 
@@ -238,6 +246,90 @@ if __name__ == '__main__':
 
     print(createGoogleDirectionURL(locationA, locationB, waypoints=acwp0))
 
+def twolists(l1, l2):
+    return [ waypoint for waypoint in chain.from_iterable(zip_longest(l1, l2)) if waypoint is not None]
 
+# def test():
+#     global bingResponses
+#     if (len(bingResponses) == 0):
+#         bingResponses = asyncio.run(setupSydney(user_interest, all_cities))
+#     if (len(bingResponses) > 0):
+#         waypoints0, output_dict0 = cleanDict(parseBingOutput(bingResponses[0], user_interest[0]))
+#         waypoints1, output_dict1 = cleanDict(parseBingOutput(bingResponses[1], user_interest[1]))
+
+#         waypoints0.extend(waypoints1)
+#         # my_bar = st.progress(100)
+#         if (len(bingResponses) > 0):
+
+#             selectedWaypoints = st.multiselect("Select your Wonders!", options=waypoints0,max_selections=9)
+
+#             acwp = autocompleteWaypoints(selectedWaypoints)
+
+#             if (len(acwp) > 0):
+#                 st.write(createGoogleDirectionURL(locationA, locationB, waypoints=acwp))
+
+def reset():
+    if 'bingResponse' in st.session_state:
+        del st.session_state['bingResponse']
+
+if __name__ == '__main__':
     
+    st.title('WonderWays')
+    st.write('Create your own :star: Wonder Way :star:')
+    print('PASSED THIS')
+    userLocationA = st.text_input(ASK_LOCATION_START, value='UCI', on_change=reset)
+    userLocationA = st.selectbox("select autocomplete option", options=autocompleteUserInput(userLocationA), on_change=reset)
+
+    userLocationB = st.text_input(ASK_LOCATION_START, value='UC Berkeley', on_change=reset)
+    userLocationB = st.selectbox("select autocomplete option", options=autocompleteUserInput(userLocationB), on_change=reset)
     
+    user_interest = st.multiselect("Select your 2 Interests:", options=INTERESTS, max_selections=2, on_change=reset)
+    
+    # print(userLocationA)
+
+    locALst = userLocationA.split(',')
+    locBLst = userLocationB.split(',')
+    # st.write(locALst)
+    cityA, stateA = locALst[-3].strip().replace(' ', '-'), locALst[-2].split()[0].strip()
+    cityB, stateB = locBLst[-3].strip().replace(' ', '-'), locBLst[-2].split()[0].strip()
+
+    all_cities = getCities(cityA, stateA, cityB, stateB)
+    progress_text = "Creating your personalized WonderWay"
+
+    if(len(user_interest) == 2):
+        if 'bingResponse' not in st.session_state:
+            my_bar = st.progress(0, text=progress_text)
+            st.session_state['bingResponse'] = asyncio.run(setupSydney(user_interest, all_cities))
+        if 'bingResponse' in st.session_state:
+            waypoints0, _ = cleanDict(parseBingOutput(st.session_state['bingResponse'][0], user_interest[0]))
+            waypoints1, _ = cleanDict(parseBingOutput(st.session_state['bingResponse'][1], user_interest[1]))
+
+            if (len(waypoints0) > 0):
+                selectedWaypoints = st.multiselect("Select your Wonders!", options=twolists(waypoints0, waypoints1), max_selections=9)
+                acwp = autocompleteWaypoints(selectedWaypoints)
+
+                if (len(acwp) > 0):
+                    link = createGoogleDirectionURL(userLocationA, userLocationB, waypoints=acwp)
+                    st.write(link)
+                    # st.write("Check out WonderWay Trip on Google [link](https://share.streamlit.io/mesmith027/streamlit_webapps/main/MC_pi/streamlit_app.py)")
+    # waypoints0 = []
+    # # stop = True
+    # if(len(user_interest) == 2):
+    #     my_bar = st.progress(0, text=progress_text)
+    #     test()
+        # if (len(bingResponses) == 0):
+        #     bingResponses = asyncio.run(setupSydney(user_interest, all_cities))
+        # if (len(bingResponses) > 0):
+        #     waypoints0, output_dict0 = cleanDict(parseBingOutput(bingResponses[0], user_interest[0]))
+        #     waypoints1, output_dict1 = cleanDict(parseBingOutput(bingResponses[1], user_interest[1]))
+
+        #     waypoints0.extend(waypoints1)
+        #     # my_bar = st.progress(100)
+        #     if (len(waypoints0) > 0):
+
+        #         selectedWaypoints = st.multiselect("Select your Wonders!", options=waypoints0,max_selections=9)
+
+        #         acwp = autocompleteWaypoints(selectedWaypoints)
+
+        #         if (len(acwp) > 0):
+        #             st.write(createGoogleDirectionURL(locationA, locationB, waypoints=acwp))
