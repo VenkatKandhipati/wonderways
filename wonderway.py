@@ -212,9 +212,6 @@ if __name__ == '__main__':
     locationA = autocompleteUserInput(askUserInput(ASK_LOCATION_START))
     locationB = autocompleteUserInput(askUserInput(ASK_LOCATION_END))
 
-    # locationA = 'UCI - North Campus, Irvine, CA, United States of America'
-    # locationB = 'Ronald Reagan UCLA Medical Center, 757 Westwood Plaza, Los Angeles, CA 90095, United States of America'
-
     user_interest = askUserInterests()
 
     locALst = locationA.split(',')
@@ -229,21 +226,18 @@ if __name__ == '__main__':
     waypoints0, output_dict0 = cleanDict(parseBingOutput(bingResponses[0], user_interest[0]))
     waypoints1, output_dict1 = cleanDict(parseBingOutput(bingResponses[1], user_interest[1]))
 
-    # print(waypoints0)
-    # print(waypoints1)
-    # print(output_dict0)
-    # print(output_dict1)
-    selectedWaypoints0 = waypointPrompt(waypoints0)
-    print()
+    selectedWaypoints0 = waypointPrompt(waypoints0)    
     selectedWaypoints1 = waypointPrompt(waypoints1)
-    print(autocompleteWaypoints(selectedWaypoints0))
-    print()
-    print(autocompleteWaypoints(selectedWaypoints1))
-    # for city, interests in output_dict.items():
-    #     print("City:", city)
-    #     for interest, location in interests.items():
-    #         print("- {}: {}".format(interest, location))
-    #     print()
+
+    acwp0 = autocompleteWaypoints(selectedWaypoints0)
+    acwp1 = autocompleteWaypoints(selectedWaypoints1)
+
+    print(acwp0)
+    print(acwp1)
+    acwp0.extend(acwp1)
+
+    print(createGoogleDirectionURL(locationA, locationB, waypoints=acwp0))
+
 
     
     
